@@ -1,0 +1,75 @@
+program(){
+    TMPFILE=$(mktemp)
+    TMPFILE2=$(mktemp)
+    NAME=""
+    DIRECTION=`xdg-user-dir MUSIC`
+    ARTIST=""
+    SONGNAME=""
+    ALBUM=""
+    YEAR=""
+    COMMAND="No Quit"
+    RESULT=""
+
+    while [[ "$COMMAND" != "Quit" && "$COMMAND" != "" ]]
+    do	
+        MENU=("File name: $NAME" "Directory: $DIRECTION" \
+        "Artist: $ARTIST" "Song name: $SONGNAME" "Album: $ALBUM" "Year: $YEAR" "Find" "Quit")
+        COMMAND=`zenity --list --column=Menu "${MENU[@]}" --width 300 --height 450`
+        case $COMMAND in
+            "File name:"*) NAME=`zenity --entry --text "Write file name"`;;
+            "Directory:"*) DIRECTION=`zenity --text "Write directory" --entry --entry-text="$DIRECTION"`;;
+            "Artist:"*) ARTIST=`zenity --text "Write author" --entry --entry-text="$ARTIST"`;;
+            "Song name:"*) SONGNAME=`zenity --text "Write song title" --entry --entry-text="$SONGNAME"`;;
+            "Album:"*) ALBUM=`zenity --text "Write album title" --entry --entry-text="$ALBUM"`;;
+            "Year:"*) YEAR=`zenity --text "Write year" --entry --entry-text="$YEAR"`;;
+        esac
+        
+        if [ "$COMMAND" == "Find" ]; then
+            FIND_COMMAND="find"
+            if [ -n "$DIRECTION" ]; then
+                FIND_COMMAND=$FIND_COMMAND" $DIRECTION"
+            fi
+            if [ -n "$NAME" ]; then
+                FIND_COMMAND=$FIND_COMMAND' -name '$NAME
+            fi
+            $FIND_COMMAND | grep "\.mp3$" > $TMPFILE
+            clear
+
+            > $TMPFILE2
+            cat $TMPFILE | while read ROW; do
+                read_tags "$ROW"
+
+                CONDITION="true"
+                if ! grep -q -i "$ARTIST" <<< "$SONG_ARTIST"; then
+                    CONDITION="false"
+                fi
+                if ! grep -q -i "$SONGNAME" <<< "$SONG_SONGNAME"; then
+                    CONDITION="false"
+                fi
+                if ! grep -q -i "$ALBUM" <<< "$SONG_ALBUM"; then
+                    CONDITION="false"
+                fi
+                if ! grep -q -i "$YEAR" <<< "$SONG_YEAR"; then
+                    CONDITION="false"
+                fi
+                
+                if [ "$CONDITION" == "true" ]; then
+                    echo $ROW >> $TMPFILE2
+                fi
+            done
+            
+            CHOSEN_SONG_DIRECTORY=`cat $TMPFILE2 | \
+            yad --list --title "Search results" --text "Finding all mp3 files.." --column "Files" \
+            --width 450 --height 450 --no-markup --scroll --separator=""`
+            while [ -n "$CHOSEN_SONG_DIRECTORY" ]
+            do
+                edit "$CHOSEN_SONG_DIRECTORY"
+                CHOSEN_SONG_DIRECTORY=`cat $TMPFILE2 | \
+                yad --list --title "Search results" --text "Finding all mp3 files.." --column "Files" \
+                --width 450 --height 450 --no-markup --scroll --separator=""`
+            done
+        fi
+        
+        clear
+    done
+}

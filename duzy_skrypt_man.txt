@@ -1,0 +1,33 @@
+./" Manpage for duzy_skrypt.sh
+.TH man 1 "12 May 2021" "1.0" "duzy_skrypt man"
+.SH NAME
+duzy_skrypt is program where you can find mp3 files by name, tags and change these tags.
+.SH SYNOPSIS
+.SS ./duzy_skrypt.sh [-h] [-v]
+(needs to be open in directory, where are all his files)
+.SH DESCRIPTION
+.ce 1000
+.TP
+duzy_skrypt has 3 layers.
+.P
+The first layer is menu where you can write parameters to find mp3 files. There are file name, directory (default is music folder), artist (author), song name (title), album and year of creation. Empty fields mean they're not filtered.
+.P
+The second layer is list of results. Program can work slowly if there is a lot of file. You can click on mp3 file you're interested.
+.P
+The third layer is file view. You have its name and artist, song name, album, note and year (if they have this tag, otherwise it's empty). You can change tags content and save, you can cancel (it won't change tags) or play a song. Song should open in default player.
+.ce 0
+.SH OPTIONS
+.SS
+.BR
+-v
+Parameter shows version of program.
+.SS
+.BR
+ -h
+Parameter shows short help.
+.SH SEE ALSO
+xdg-user-dir, zenity, yad, id3v2, id3tool, mp3tag
+.SH KNOWN BUGS
+Program doesn't find files in directories containing whitespaces
+.SH AUTHOR
+Wiktor Dabrowski, 184392, s184392@student.pg.edu.pl

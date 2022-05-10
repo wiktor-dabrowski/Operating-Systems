@@ -1,0 +1,52 @@
+read_tags(){
+    SONG_ARTIST=`id3v2 -l "$1" | grep -a "Artist:" | cut -d ":" -f 3 | cut -d " " -f 2-`
+    SONG_SONGNAME=`id3v2 -l "$1" | grep -a "Title  :" | cut -d ":" -f 2 \
+    | cut -d " " -f 2- | rev | cut -d "A" -f 2- | rev`
+    SONG_ALBUM=`id3v2 -l "$1" | grep -a "Album  :" | cut -d ":" -f 2 \
+    | rev | cut -d "Y" -f 2- | rev | cut -d " " -f 2-`
+    SONG_ETCETERA=`id3v2 -l "$1" | grep -a "Comment:" | cut -d ":" -f 2 \
+    | rev | cut -d "T" -f 2- | rev | cut -d " " -f 2-`
+    SONG_YEAR=`id3v2 -l "$1" | grep -a "Year:" | cut -d ":" -f 3 | cut -d "," -f 1 | cut -d " " -f 2`
+}
+
+edit(){
+    read_tags "$1"
+    FILENAME=`id3tool "$1" | grep "Filename:" | rev | cut -d "/" -f 1 | rev`
+
+    EDIT_COMMAND="No Quit"
+    while [ "$EDIT_COMMAND" != "Quit" ]
+    do	
+        EDIT_MENU=("File name: $FILENAME" "Artist: $SONG_ARTIST" "Song name: $SONG_SONGNAME" \
+        "Album: $SONG_ALBUM" "Note: $SONG_ETCETERA" "Year: $SONG_YEAR" "Save" "Cancel" "Play")
+        EDIT_COMMAND=`zenity --list --column=Menu "${EDIT_MENU[@]}" --width 300 --height 450`
+        case $EDIT_COMMAND in
+            "File name:"*) NAME=`zenity --entry --text "Write file name" \
+            --entry --entry-text="$FILENAME"`;;
+            "Artist:"*) SONG_ARTIST=`zenity --text "Write author" \
+            --entry --entry-text="$SONG_ARTIST"`;;
+            "Song name:"*) SONG_SONGNAME=`zenity --text "Write song title" \
+            --entry --entry-text="$SONG_SONGNAME"`;;
+            "Album:"*) SONG_ALBUM=`zenity --text "Write album" \
+            --entry --entry-text="$SONG_ALBUM"`;;
+            "Note:"*) SONG_ETCETERA=`zenity --text "Write note" \
+            --entry --entry-text="$SONG_ETCETERA"`;;
+            "Year:"*) SONG_YEAR=`zenity --text "Write year" \
+            --entry --entry-text="$SONG_YEAR"`;;
+        esac
+        
+        if [ "$EDIT_COMMAND" == "Save" ]; then
+            mp3tag -a "$SONG_ARTIST" -s "$SONG_SONGNAME" -l "$SONG_ALBUM"\
+             -e "$SONG_ETCETERA" -y "$SONG_YEAR" "$1"
+
+            EDIT_COMMAND="Quit"
+        fi
+        if [ "$EDIT_COMMAND" == "Cancel" ]; then
+            EDIT_COMMAND="Quit"
+        fi
+        if [ "$EDIT_COMMAND" == "Play" ]; then
+            xdg-open "$1"
+        fi
+
+        clear
+    done 
+}

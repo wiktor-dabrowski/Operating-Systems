@@ -1,0 +1,9 @@
+VERSION=1.0
+
+help(){
+    echo "Jeśli chcesz pomoc, przeczytaj manual"
+}
+
+version(){
+    echo "Wersja "$VERSION
+}
